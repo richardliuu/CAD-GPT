@@ -45,5 +45,7 @@ cd cad-llm-backend
 
 uvicorn main:app --reload
 
+- A link to a local host server will appear 
+- Click on the link to open the application on your browser 
 - Once the app is running, enter a prompt into the input box!
 
