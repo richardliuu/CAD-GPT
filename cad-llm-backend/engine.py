@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 
 class GeminiEngine:
     def __init__(self):
-        # Load environment variables
         load_dotenv()
         api_key = os.getenv("GEMINI_API_KEY")
 
@@ -25,7 +24,7 @@ class GeminiEngine:
     
     def generate_cad(self, prompt, model="gemini-2.5-pro-exp-03-25"):
         """Generate OpenSCAD code using Gemini AI"""
-        # Enhanced prompt engineering for better OpenSCAD code generation
+        # Prompt engineering for OpenSCAD code generation
         cad_prompt = f"""
         Generate clean, valid OpenSCAD code for: {prompt}
         
@@ -48,11 +47,9 @@ class GeminiEngine:
             contents=cad_prompt
         )
         
-        # Extract just the code from potential markdown blocks
         code = response.text
         
-        # Remove markdown code blocks if present
+        # This removes the markdown code blocks if they are present
         code = re.sub(r'```(?:openscad|)?\n(.*?)\n```', r'\1', code, flags=re.DOTALL)
         
-        # Ensure the code is properly formatted
         return code.strip()

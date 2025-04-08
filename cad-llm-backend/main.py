@@ -4,23 +4,20 @@ from pydantic import BaseModel
 from engine import GeminiEngine
 import logging
 
-# Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize the FastAPI app
 app = FastAPI()
 
-# Add CORS middleware
+#CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for testing
+    allow_origins=["*"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Initialize Gemini engine
 gemini_engine = GeminiEngine()
 
 class GeminiRequest(BaseModel):
@@ -57,7 +54,6 @@ async def generate_cad(request: GeminiRequest):
         logger.error(f"Error generating CAD code: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# Debug endpoint to see raw request data
 @app.post("/api/debug")
 async def debug_request(request: Request):
     body = await request.body()
