@@ -78,6 +78,29 @@ function App() {
     }
   }, [renderUrl]);
 
+  // Header collapse effect
+  useEffect(() => {
+    const header = document.querySelector('.App-header');
+    
+    const handleScroll = () => {
+      if (window.scrollY > 10) {
+        header.classList.add('collapsed');
+      } else {
+        header.classList.remove('collapsed');
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    
+    // Initialize header state on component mount
+    handleScroll();
+    
+    // Clean up event listener on component unmount
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   return (
     <div className="App" ref={appRef}>
       <header className="App-header">
