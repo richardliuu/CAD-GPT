@@ -9,6 +9,7 @@ function App() {
   const [error, setError] = useState('');
   const [renderUrl, setRenderUrl] = useState('');
   const iframeRef = useRef(null);
+  const appRef = useRef(null);
 
   // Function to generate OpenSCAD code
   const handleGenerateCAD = async () => {
@@ -44,38 +45,64 @@ function App() {
       return;
     }
     
+    // Save current scroll position before opening viewer
+    const scrollPos = window.scrollY;
+    
     // Create URL for OpenSCAD Online viewer
     const encodedCode = encodeURIComponent(cadCode);
     const viewerUrl = `https://openscad.cloud/openscad/#script=${encodedCode}`;
     
     setRenderUrl(viewerUrl);
+    
+    // Scroll back to preserved position after a short delay
+    setTimeout(() => {
+      window.scrollTo(0, scrollPos);
+    }, 100);
   };
 
+  // Fix for iframe loading issues
+  useEffect(() => {
+    if (renderUrl && iframeRef.current) {
+      const handleIframeLoad = () => {
+        // Ensure the page doesn't jump when iframe loads
+        window.scrollTo(0, window.scrollY);
+      };
+      
+      iframeRef.current.addEventListener('load', handleIframeLoad);
+      
+      return () => {
+        if (iframeRef.current) {
+          iframeRef.current.removeEventListener('load', handleIframeLoad);
+        }
+      };
+    }
+  }, [renderUrl]);
+
   return (
-    <div className="App">
+    <div className="App" ref={appRef}>
       <header className="App-header">
-        <h1>Gemini AI OpenSCAD Generator</h1>
+        <h1>CAD-GPT</h1>
         <p>Generate and render 3D models with AI</p>
       </header>
       
       <main className="App-main">
         <div className="input-section">
-          <textarea 
-            placeholder="Describe the 3D model you want to create (e.g., 'a simple house with a roof and door')" 
+          <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Describe the 3D model you want to create..."
             rows={4}
           />
           
           <div className="button-group">
-            <button 
-              onClick={handleGenerateCAD} 
+            <button
+              onClick={handleGenerateCAD}
               disabled={loading}
             >
               {loading ? 'Generating...' : 'Generate OpenSCAD Code'}
             </button>
             
-            <button 
+            <button
               onClick={handleRenderCAD}
               disabled={!cadCode}
             >
@@ -94,8 +121,8 @@ function App() {
               <button onClick={() => navigator.clipboard.writeText(cadCode)}>
                 Copy to Clipboard
               </button>
-              <a 
-                href={`data:text/plain;charset=utf-8,${encodeURIComponent(cadCode)}`} 
+              <a
+                href={`data:text/plain;charset=utf-8,${encodeURIComponent(cadCode)}`}
                 download="model.scad"
                 className="download-link"
               >
@@ -109,11 +136,12 @@ function App() {
           <div className="render-section">
             <h2>3D Model Preview:</h2>
             <div className="iframe-container">
-              <iframe 
+              <iframe
                 ref={iframeRef}
                 src={renderUrl}
                 title="OpenSCAD Viewer"
                 className="openscad-iframe"
+                sandbox="allow-scripts allow-same-origin"
               ></iframe>
             </div>
             <p className="note">Note: If the model doesn't render correctly, you can use the downloaded .scad file with desktop OpenSCAD.</p>
