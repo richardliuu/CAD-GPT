@@ -26,10 +26,11 @@ function App() {
         prompt: prompt
       });
       
-      setCadCode(response.data.code);
+      const generatedCode = response.data.code;
+      setCadCode(generatedCode);
       
-      // Clear previous render URL
-      setRenderUrl('');
+      renderOpenScadCode(generatedCode);
+      
     } catch (err) {
       console.error("Error details:", err);
       setError('Error generating CAD code: ' + (err.response?.data?.detail || err.message));
@@ -38,33 +39,32 @@ function App() {
     }
   };
 
-  // Function to render OpenSCAD code using OpenSCAD.org online viewer
-  const handleRenderCAD = () => {
-    if (!cadCode) {
+  const renderOpenScadCode = (code) => {
+    if (!code) {
       setError('No OpenSCAD code to render');
       return;
     }
     
-    // Save current scroll position before opening viewer
     const scrollPos = window.scrollY;
     
-    // Create URL for OpenSCAD Online viewer
-    const encodedCode = encodeURIComponent(cadCode);
+    const encodedCode = encodeURIComponent(code);
     const viewerUrl = `https://openscad.cloud/openscad/#script=${encodedCode}`;
     
     setRenderUrl(viewerUrl);
     
-    // Scroll back to preserved position after a short delay
     setTimeout(() => {
       window.scrollTo(0, scrollPos);
     }, 100);
+  };
+
+  const handleRenderCAD = () => {
+    renderOpenScadCode(cadCode);
   };
 
   // Fix for iframe loading issues
   useEffect(() => {
     if (renderUrl && iframeRef.current) {
       const handleIframeLoad = () => {
-        // Ensure the page doesn't jump when iframe loads
         window.scrollTo(0, window.scrollY);
       };
       
@@ -99,15 +99,16 @@ function App() {
               onClick={handleGenerateCAD}
               disabled={loading}
             >
-              {loading ? 'Generating...' : 'Generate OpenSCAD Code'}
+              {loading ? 'Generating...' : 'Generate & Render Model'}
             </button>
             
-            <button
-              onClick={handleRenderCAD}
-              disabled={!cadCode}
-            >
-              Render in OpenSCAD Viewer
-            </button>
+            {cadCode && (
+              <button
+                onClick={handleRenderCAD}
+              >
+                Re-render Model
+              </button>
+            )}
           </div>
           
           {error && <div className="error-message">{error}</div>}
