@@ -1,0 +1,30 @@
+/* styles/ContentSection.css */
+.content-section {
+  padding: 80px 0;
+  background-color: var(--background-white);
+}
+
+.section-content {
+  max-width: 800px;
+}
+
+.section-content p {
+  margin-bottom: 1.5rem;
+  color: var(--text-light);
+  font-size: 1.125rem;
+}
+
+.section-content .secondary-button {
+  margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .content-section {
+    padding: 60px 0;
+  }
+
+  .section-content p {
+    font-size: 1rem;
+  }
+}
+

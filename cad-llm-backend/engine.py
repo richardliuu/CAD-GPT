@@ -1,0 +1,58 @@
+from google import genai
+import re
+import os
+from dotenv import load_dotenv
+
+class GeminiEngine:
+    def __init__(self):
+        # Load environment variables
+        load_dotenv()
+        api_key = os.getenv("GEMINI_API_KEY")
+
+        if not api_key:
+            raise ValueError("GEMINI_API_KEY not found in environment variables")
+
+        # Initialize Gemini client
+        self.client = genai.Client(api_key=api_key)
+    
+    def generate_content(self, prompt, model="gemini-2.5-pro-exp-03-25"):
+        """Generate content using Gemini AI"""
+        response = self.client.models.generate_content(
+            model=model,
+            contents=prompt
+        )
+        return response.text
+    
+    def generate_cad(self, prompt, model="gemini-2.5-pro-exp-03-25"):
+        """Generate OpenSCAD code using Gemini AI"""
+        # Enhanced prompt engineering for better OpenSCAD code generation
+        cad_prompt = f"""
+        Generate clean, valid OpenSCAD code for: {prompt}
+        
+        Use ONLY standard OpenSCAD syntax and primitives like:
+        - cube([width, depth, height])
+        - sphere(r=radius)
+        - cylinder(h=height, r=radius)
+        - translate([x, y, z]) {{ ... }}
+        - rotate([x, y, z]) {{ ... }}
+        - union() {{ ... }}
+        - difference() {{ ... }}
+        - intersection() {{ ... }}
+        
+        Provide ONLY the valid OpenSCAD code with no explanations, comments, or markdown.
+        The code should be complete and syntactically correct.
+        """
+        
+        response = self.client.models.generate_content(
+            model=model,
+            contents=cad_prompt
+        )
+        
+        # Extract just the code from potential markdown blocks
+        code = response.text
+        
+        # Remove markdown code blocks if present
+        code = re.sub(r'```(?:openscad|)?\n(.*?)\n```', r'\1', code, flags=re.DOTALL)
+        
+        # Ensure the code is properly formatted
+        return code.strip()

@@ -1,0 +1,135 @@
+/* styles/Header.css */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    z-index: 100;
+    background-color: var(--background-white);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+  }
+  
+  .header.scrolled {
+    height: 64px;
+    box-shadow: var(--shadow-md);
+  }
+  
+  .header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+  }
+  
+  .logo-container {
+    display: flex;
+    align-items: center;
+  }
+  
+  .logo-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .logo-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+  }
+  
+  .main-nav {
+    display: flex;
+    align-items: center;
+  }
+  
+  .nav-list {
+    display: flex;
+    gap: 2rem;
+  }
+  
+  .nav-link {
+    font-weight: 500;
+    color: var(--text-light);
+    transition: var(--transition);
+    position: relative;
+  }
+  
+  .nav-link.active {
+    color: var(--primary-color);
+  }
+  
+  .nav-link:hover {
+    color: var(--primary-color);
+  }
+  
+  .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--primary-color);
+    transform: scaleX(1);
+  }
+  
+  .mobile-menu-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 24px;
+    height: 20px;
+    cursor: pointer;
+  }
+  
+  .mobile-menu-toggle span {
+    display: block;
+    height: 2px;
+    width: 100%;
+    background-color: var(--text-dark);
+    transition: var(--transition);
+  }
+  
+  @media (max-width: 768px) {
+    .mobile-menu-toggle {
+      display: flex;
+    }
+  
+    .main-nav {
+      position: fixed;
+      top: 80px;
+      left: 0;
+      width: 100%;
+      background-color: var(--background-white);
+      box-shadow: var(--shadow-md);
+      padding: 1.5rem;
+      transform: translateY(-100%);
+      opacity: 0;
+      visibility: hidden;
+      transition: var(--transition);
+    }
+  
+    .header.scrolled .main-nav {
+      top: 64px;
+    }
+  
+    .main-nav.open {
+      transform: translateY(0);
+      opacity: 1;
+      visibility: visible;
+    }
+  
+    .nav-list {
+      flex-direction: column;
+      gap: 1.5rem;
+      width: 100%;
+    }
+  
+    .nav-link {
+      display: block;
+      width: 100%;
+    }
+  }
