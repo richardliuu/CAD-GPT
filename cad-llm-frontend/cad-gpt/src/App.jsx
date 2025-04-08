@@ -9,7 +9,8 @@ function App() {
   const [error, setError] = useState('');
   const [renderUrl, setRenderUrl] = useState('');
   const iframeRef = useRef(null);
-  const appRef = useRef(null);
+  const chatContainerRef = useRef(null);
+  const textareaRef = useRef(null);
 
   // Function to generate OpenSCAD code
   const handleGenerateCAD = async () => {
@@ -45,15 +46,16 @@ function App() {
       return;
     }
     
-    const scrollPos = window.scrollY;
-    
     const encodedCode = encodeURIComponent(code);
     const viewerUrl = `https://openscad.cloud/openscad/#script=${encodedCode}`;
     
     setRenderUrl(viewerUrl);
     
+    // Scroll to show results after rendering
     setTimeout(() => {
-      window.scrollTo(0, scrollPos);
+      if (chatContainerRef.current) {
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      }
     }, 100);
   };
 
@@ -61,11 +63,22 @@ function App() {
     renderOpenScadCode(cadCode);
   };
 
+  // Auto resize textarea
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+    }
+  }, [prompt]);
+
   // Fix for iframe loading issues
   useEffect(() => {
     if (renderUrl && iframeRef.current) {
       const handleIframeLoad = () => {
-        window.scrollTo(0, window.scrollY);
+        if (chatContainerRef.current) {
+          chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
       };
       
       iframeRef.current.addEventListener('load', handleIframeLoad);
@@ -78,100 +91,100 @@ function App() {
     }
   }, [renderUrl]);
 
-  // Header collapse effect
-  useEffect(() => {
-    const header = document.querySelector('.App-header');
-    
-    const handleScroll = () => {
-      if (window.scrollY > 10) {
-        header.classList.add('collapsed');
-      } else {
-        header.classList.remove('collapsed');
-      }
-    };
-    
-    window.addEventListener('scroll', handleScroll);
-    
-    // Initialize header state on component mount
-    handleScroll();
-    
-    // Clean up event listener on component unmount
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
+  // Handle Enter key to submit
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleGenerateCAD();
+    }
+  };
 
   return (
-    <div className="App" ref={appRef}>
-      <header className="App-header">
-        <h1>CAD-GPT</h1>
-        <p>Generate and render 3D models with AI</p>
-      </header>
-      
-      <main className="App-main">
-        <div className="input-section">
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Describe the 3D model you want to create..."
-            rows={4}
-          />
-          
-          <div className="button-group">
-            <button
-              onClick={handleGenerateCAD}
-              disabled={loading}
-            >
-              {loading ? 'Generating...' : 'Generate & Render Model'}
-            </button>
-            
-            {cadCode && (
-              <button
-                onClick={handleRenderCAD}
-              >
-                Re-render Model
-              </button>
-            )}
+    <div className="App">
+      {/* Sidebar */}
+      <div className="sidebar">
+        <div className="sidebar-header">
+          <h1>CAD-GPT</h1>
+        </div>
+        <div className="sidebar-content">
+          <div></div> {/* This empty div pushes the footer to the bottom */}
+          <div className="sidebar-footer">
+            Powered by AI - Generate 3D models using natural language
           </div>
-          
-          {error && <div className="error-message">{error}</div>}
+        </div>
+      </div>
+      
+      {/* Main content */}
+      <div className="content">
+        <div className="content-header">
+          <p>Generate and render 3D models with AI</p>
         </div>
         
-        {cadCode && (
-          <div className="cad-section">
-            <h2>OpenSCAD Code:</h2>
-            <pre className="cad-code">{cadCode}</pre>
-            <div className="button-row">
-              <button onClick={() => navigator.clipboard.writeText(cadCode)}>
-                Copy to Clipboard
-              </button>
-              <a
-                href={`data:text/plain;charset=utf-8,${encodeURIComponent(cadCode)}`}
-                download="model.scad"
-                className="download-link"
-              >
-                Download .scad File
-              </a>
+        {/* Chat area */}
+        <div className="chat-container" ref={chatContainerRef}>
+          {cadCode && (
+            <div className="cad-section">
+              <h2>OpenSCAD Code:</h2>
+              <pre className="cad-code">{cadCode}</pre>
+              <div className="button-row">
+                <button onClick={() => navigator.clipboard.writeText(cadCode)}>
+                  Copy to Clipboard
+                </button>
+                <a
+                  href={`data:text/plain;charset=utf-8,${encodeURIComponent(cadCode)}`}
+                  download="model.scad"
+                  className="download-link"
+                >
+                  Download .scad File
+                </a>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+          
+          {renderUrl && (
+            <div className="render-section">
+              <h2>3D Model Preview:</h2>
+              <div className="iframe-container">
+                <iframe
+                  ref={iframeRef}
+                  src={renderUrl}
+                  title="OpenSCAD Viewer"
+                  className="openscad-iframe"
+                  sandbox="allow-scripts allow-same-origin"
+                ></iframe>
+              </div>
+              <p className="note">Note: If the model doesn't render correctly, you can use the downloaded .scad file with desktop OpenSCAD.</p>
+              <button onClick={handleRenderCAD}>Re-render Model</button>
+            </div>
+          )}
+        </div>
         
-        {renderUrl && (
-          <div className="render-section">
-            <h2>3D Model Preview:</h2>
-            <div className="iframe-container">
-              <iframe
-                ref={iframeRef}
-                src={renderUrl}
-                title="OpenSCAD Viewer"
-                className="openscad-iframe"
-                sandbox="allow-scripts allow-same-origin"
-              ></iframe>
-            </div>
-            <p className="note">Note: If the model doesn't render correctly, you can use the downloaded .scad file with desktop OpenSCAD.</p>
+        {/* Input area */}
+        <div className="input-container">
+          <div className="prompt-tip">
+            Describe the 3D model you want to create (e.g., "a simple chess pawn" or "gear with 12 teeth")
           </div>
-        )}
-      </main>
+          <div className="input-section">
+            <textarea
+              ref={textareaRef}
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="Describe your 3D model..."
+              onKeyDown={handleKeyDown}
+              rows={1}
+            />
+            <button
+              className="send-button"
+              onClick={handleGenerateCAD}
+              disabled={loading}
+              title="Generate model"
+            >
+              {loading ? "..." : "➤"}
+            </button>
+          </div>
+          {error && <div className="error-message">{error}</div>}
+        </div>
+      </div>
     </div>
   );
 }
